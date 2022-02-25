@@ -10,6 +10,7 @@ from qlib.data.dataset.loader import QlibDataLoader
 class WRDSDataLoader(QlibDataLoader):
     
     CATAGORIES_SEP='\t'
+    CATAGORY_DTYPE_FILE='catagory_dtypes.txt'
     
     def __init__(
         self,
@@ -52,18 +53,14 @@ class WRDSDataLoader(QlibDataLoader):
         dir=[uri for uri in C.dpm.provider_uri.values()][0]+'/catagories'
         for file in os.listdir(dir):
             field= file.split('.')[0]
-            if field=='dtypes':
-                #dyptes.freq.txt is a document that record all catagory field types
-                continue
             with open(dir+'/'+file, 'r') as f:
                 content=f.read().splitlines()
             catagory_dict[field]=dict(zip(range(len(content)), content))
         return catagory_dict
 
     def get_catagory_dtypes(self, uri: str, freq: str):
-        with open(uri+f'/catagories/dtypes.{freq}.txt', 'r') as f:
+        with open(uri+f'/{self.CATAGORY_DTYPE_FILE}', 'r') as f:
             content=f.read().splitlines()
-
         return dict([line.split(self.CATAGORIES_SEP) for line in content])
     
     def load_group_df(

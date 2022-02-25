@@ -428,6 +428,9 @@ class DumpNumeric(DumpDataBase):
         
 class DumpNumericCatagory(DumpNumeric):
     CATAGORY_DIR_NAME='catagories'
+    SYMBOL_FILE='symbol_fileds.txt'
+    DATE_FILE='date_field.txt'
+    CATAGORY_DTYPE_FILE='catagory_dtypes.txt'
     
     def __init__(
         self,
@@ -492,6 +495,7 @@ class DumpNumericCatagory(DumpNumeric):
         self._group_by_symbol=self.csv.groupby(self.symbol_field_name, as_index=True)
 
         self.qlib_dir = Path(qlib_dir).expanduser()
+        self.qlib_dir.mkdir(parents=True, exist_ok=True)
         self.backup_dir = backup_dir if backup_dir is None else Path(backup_dir).expanduser()
         if backup_dir is not None:
             self._backup_qlib_dir(Path(backup_dir).expanduser())
@@ -511,8 +515,17 @@ class DumpNumericCatagory(DumpNumeric):
 
         self._mode = self.ALL_MODE
         self._kwargs = {}
+
+        self.log_symbol_date_filed()
     
-    
+    def log_symbol_date_filed(self):
+        key_list=','.join(self.symbol_field_tuple)
+        logger.info(f"Using symbol field {key_list}.\n")
+        np.savetxt(self.qlib_dir.joinpath(self.SYMBOL_FILE),[key_list], fmt="%s", encoding="utf-8")
+        
+        logger.info(f"Using date field {self.date_field_name}.\n")
+        np.savetxt(self.qlib_dir.joinpath(self.DATE_FILE),[self.date_field_name], fmt="%s", encoding="utf-8")
+
     def _get_symbol_field_name(self):
         if len(self.symbol_field_tuple)==0:
             raise ValueError("symbol field name must be specified! ")
@@ -552,7 +565,7 @@ class DumpNumericCatagory(DumpNumeric):
         for cat, cat_list in self._kwargs['all_catagory'].items():
             cat_path = str(self._catagory_dir.joinpath(f"{cat}.{self.freq}.txt").expanduser().resolve())
             np.savetxt(cat_path, cat_list, fmt="%s", encoding="utf-8")
-        cat_dtype_paths=str(self._catagory_dir.joinpath(f"dtypes.{self.freq}.txt").expanduser().resolve())
+        cat_dtype_paths=str(self.qlib_dir.joinpath(self.CATAGORY_DTYPE_FILE).expanduser().resolve())
         np.savetxt(cat_dtype_paths, self._kwargs['all_catagory_dtypes'], fmt="%s", encoding="utf-8")
         logger.info("end of catagories dump.\n")
         
