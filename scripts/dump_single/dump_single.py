@@ -1,7 +1,5 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-import sys
-sys.path.append("/home/ml_group/sikai/qlibwrds/qlib")
 import abc
 import shutil
 import traceback
@@ -30,6 +28,7 @@ class DumpDataBase:
     DAILY_FORMAT = "%Y-%m-%d"
     HIGH_FREQ_FORMAT = "%Y-%m-%d %H:%M:%S"
     INSTRUMENTS_SEP = "\t"
+    CATAGORIES_SEP="\t"
     INSTRUMENTS_FILE_NAME = "all.txt"
 
     UPDATE_MODE = "update"
@@ -242,13 +241,15 @@ class DumpDataBase:
             code = self.get_symbol_from_file(file_or_data)
             df = self._get_source_data(file_or_data)
         else:
-            raise ValueError(f"not support {type(file_or_data)}")
+            raise NotImplementedError(f"not support {type(file_or_data)}")
         if df is None or df.empty:
             logger.warning(f"{code} data is None or empty")
             return
 
         # try to remove dup rows or it will cause exception when reindex.
         df = df.drop_duplicates(self.date_field_name)
+        if self.symbol_field_name in df.columns:
+            df=df.drop(self.symbol_field_name, axis=1)
 
         # features save dir
         features_dir = self._features_dir.joinpath(code_to_fname(code).lower())
@@ -314,10 +315,8 @@ class DumpNumeric(DumpDataBase):
         self.symbol_field_name = symbol_field_name
         
         #read dataframe
-        if not csv_path.is_dir():
-            self.csv=self._read(csv_path)
-        else:
-            raise ValueError('csv_path must a file that pandas can read')
+        self.csv=self._read(csv_path)
+
         if limit_nums is not None:
             selected_symbols=self.csv[self.symbol_field_name].drop_duplicates()[:limit_nums]
             self.csv=self.csv[self.csv[symbol_field_name].isin(selected_symbols)]
@@ -367,7 +366,7 @@ class DumpNumeric(DumpDataBase):
         elif path.endswith('parquet'):
             return pd.read_parquet(path)
         else:
-            raise ValueError('not support for this file format!')
+            raise NotImplementedError('not support for this file format!')
     
     def _get_all_date(self):
         logger.info("start get all date......")
@@ -478,16 +477,20 @@ class DumpNumericCatagory(DumpNumeric):
         self._exclude_fields = tuple(filter(lambda x: len(x) > 0, map(str.strip, exclude_fields)))
         self._include_fields = tuple(filter(lambda x: len(x) > 0, map(str.strip, include_fields)))
         self.file_suffix = file_suffix
-        self.symbol_field_name = symbol_field_name
+        ## key fields
+        if isinstance(symbol_field_name, str):
+            symbol_field_name = symbol_field_name.split(",")
+        self.symbol_field_tuple = tuple(filter(lambda x: len(x) > 0, map(str.strip, symbol_field_name)))
         self.date_field_name = date_field_name
 
         self.csv=self._read(csv_path)
-
-        if limit_nums is not None:
-            seleted_symbols=self.csv[symbol_field_name].drop_duplicates()[:limit_nums]
-            self.csv=self.csv[self.csv[symbol_field_name] in seleted_symbols]
-        self._group_by_symbol=self.csv.groupby(self.symbol_field_name)
+        self.symbol_field_name=self._get_symbol_field_name()
         
+        if limit_nums is not None:
+            seleted_symbols=self.csv[self.symbol_field_name].drop_duplicates()[:limit_nums]
+            self.csv=self.csv[self.csv[self.symbol_field_name].isin(seleted_symbols)]
+        self._group_by_symbol=self.csv.groupby(self.symbol_field_name, as_index=True)
+
         self.qlib_dir = Path(qlib_dir).expanduser()
         self.backup_dir = backup_dir if backup_dir is None else Path(backup_dir).expanduser()
         if backup_dir is not None:
@@ -509,18 +512,38 @@ class DumpNumericCatagory(DumpNumeric):
         self._mode = self.ALL_MODE
         self._kwargs = {}
     
+    
+    def _get_symbol_field_name(self):
+        if len(self.symbol_field_tuple)==0:
+            raise ValueError("symbol field name must be specified! ")
+        elif len(self.symbol_field_tuple)==1:
+            return self.symbol_field_tuple[0]
+        else:
+            #merge multi cols into one col
+            symbol_field_name="_".join(self.symbol_field_tuple)
+            self.csv[symbol_field_name]=""
+            for field in self.symbol_field_tuple:
+                self.csv[symbol_field_name]+= "_"+self.csv[field]
+            self.csv[symbol_field_name]=self.csv[symbol_field_name].apply(lambda x:x[1:])
+            return symbol_field_name
+
     def _get_all_catagory(self):
         logger.info("start get all catagory......")
         all_catagory={}
+        all_catagory_types=[]
         for col in self._get_catagory_fields():
             series=self.csv[col]
+            _type_fileds=[col,str(series.dtype)]
+            all_catagory_types.append(f"{self.CATAGORIES_SEP.join(_type_fileds)}")
             if series.dtype == 'datetime64[ns]':
                 all_catagory[col]=sorted(map(pd.Timestamp,self.csv[col].drop_duplicates()))
             elif series.dtype=='object':
                 all_catagory[col]=sorted(map(str,self.csv[col].drop_duplicates()))
             else:
                 raise NotImplementedError('Not support for this type')
+
         self._kwargs['all_catagory']=all_catagory
+        self._kwargs['all_catagory_dtypes']=all_catagory_types
         logger.info("end of get all catagory.\n")
     
     def _dump_catagories(self):
@@ -529,6 +552,8 @@ class DumpNumericCatagory(DumpNumeric):
         for cat, cat_list in self._kwargs['all_catagory'].items():
             cat_path = str(self._catagory_dir.joinpath(f"{cat}.{self.freq}.txt").expanduser().resolve())
             np.savetxt(cat_path, cat_list, fmt="%s", encoding="utf-8")
+        cat_dtype_paths=str(self._catagory_dir.joinpath(f"dtypes.{self.freq}.txt").expanduser().resolve())
+        np.savetxt(cat_dtype_paths, self._kwargs['all_catagory_dtypes'], fmt="%s", encoding="utf-8")
         logger.info("end of catagories dump.\n")
         
     def _convert_catagory_features(self):

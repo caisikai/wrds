@@ -8,6 +8,9 @@ from qlib.config import C
 from qlib.data.dataset.loader import QlibDataLoader
 
 class WRDSDataLoader(QlibDataLoader):
+    
+    CATAGORIES_SEP='\t'
+    
     def __init__(
         self,
         config: Tuple[list, tuple, dict],
@@ -35,22 +38,33 @@ class WRDSDataLoader(QlibDataLoader):
         
         data_uri=[uri for uri in C.dpm.provider_uri.values()][0]
         try:
-            self.catagory_mappers=self.get_mapper_dict(data_uri)
+            self.catagory_mappers=self.get_catagory_mappers(data_uri)
+            self.catagory_dtypes=self.get_catagory_dtypes(data_uri,freq)
             self.catagory_fields=list(self.catagory_mappers.keys())
         except:
             self.catagory_mappers=None
+            self.catagory_dtypes=None
             self.catagory_fields=None
     
-    def get_mapper_dict(self, uri: str):
+    def get_catagory_mappers(self, uri: str):
 
         catagory_dict={}
         dir=[uri for uri in C.dpm.provider_uri.values()][0]+'/catagories'
         for file in os.listdir(dir):
             field= file.split('.')[0]
+            if field=='dtypes':
+                #dyptes.freq.txt is a document that record all catagory field types
+                continue
             with open(dir+'/'+file, 'r') as f:
                 content=f.read().splitlines()
             catagory_dict[field]=dict(zip(range(len(content)), content))
         return catagory_dict
+
+    def get_catagory_dtypes(self, uri: str, freq: str):
+        with open(uri+f'/catagories/dtypes.{freq}.txt', 'r') as f:
+            content=f.read().splitlines()
+
+        return dict([line.split(self.CATAGORIES_SEP) for line in content])
     
     def load_group_df(
         self,
@@ -81,7 +95,7 @@ class WRDSDataLoader(QlibDataLoader):
                 allfields=re.findall("\$[a-z]+", "$auth",flags=0)
                 
                 if "$"+catafory_field_i in allfields and expr!= f"${catafory_field_i}":
-                    raise ValueError(f"Not Support Operator on Catagory_field {catafory_field_i} in expression {expr}!")
+                    raise NotImplementedError(f"Not Support Operator on Catagory_field {catafory_field_i} in expression {expr}!")
                 
     def map(self, df: pd.DataFrame)-> pd.DataFrame:
         """
@@ -96,7 +110,9 @@ class WRDSDataLoader(QlibDataLoader):
         
         if self.catagory_mappers is None:
             return df
-        for catafory_field_i in self.catagory_fields: 
-            if catafory_field_i in df.columns:
-                df[catafory_field_i]=df[catafory_field_i].apply(lambda x:self.catagory_mappers[catafory_field_i].get(x))
+        for catagory_field_i in self.catagory_fields: 
+            if catagory_field_i in df.columns:
+                df[catagory_field_i]=df[catagory_field_i].apply(lambda x:self.catagory_mappers[catagory_field_i].get(x))
+                if self.catagory_dtypes[catagory_field_i]=="datetime64[ns]":
+                    df[catagory_field_i]=pd.to_datetime(df[catagory_field_i])
         return df
