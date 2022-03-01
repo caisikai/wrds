@@ -1,4 +1,4 @@
-
+import os
 from qlib.data.dataset.handler import DataHandlerLP
 from qlib.data.dataset.processor import Processor
 from qlib.utils import get_callable_kwargs
@@ -40,6 +40,79 @@ def check_transform_proc(proc_l, fit_start_time, fit_end_time):
 #                            'lse', 'at', 'icapt', 'ceq', 'iid', 'exchg', 'lt', 'final', 'conm', 'sedol','fdate']
 #
 _DEFAUFLT_FUNDA_FIELDS=['curcd', 'loc', 'acqmeth', 'compst', 'bspr', 'popsrc', 'auop', 'final', 'indfmt', 'consol', 'sedol', 'fdate', 'pdate', 'curcdi', 'acctstd', 'iid', 'fic', 'isin', 'stalt', 'datafmt', 'costat', 'au', 'conm']
+class WRDS(DataHandlerLP):
+    def __init__(
+        self,
+        instruments="test100",
+        start_time=None,
+        end_time=None,
+        freq="day",
+        infer_processors=[],
+        learn_processors=[],
+        fit_start_time=None,
+        fit_end_time=None,
+        filter_pipe=None,
+        inst_processor=None,
+        **kwargs,
+    ):
+        self.labels = kwargs.get("label", None)
+        self.include_fields = kwargs.get("include_fields", "all")
+
+        infer_processors = check_transform_proc(infer_processors, fit_start_time, fit_end_time)
+        learn_processors = check_transform_proc(learn_processors, fit_start_time, fit_end_time)
+
+        config = {}
+        if self.labels:
+            config["label"] = self.labels
+
+        config["feature"] = self.get_feature_config()
+
+        data_loader = {
+          "class": "WRDSDataLoader",
+          "module_path": "data.wrds_dataloader",
+          "kwargs": {
+              "config": config,
+              "filter_pipe": filter_pipe,
+              "freq": freq,
+              "inst_processor": inst_processor,
+          },
+        }
+
+        super().__init__(
+            instruments=instruments,
+            start_time=start_time,
+            end_time=end_time,
+            data_loader=data_loader,
+            learn_processors=learn_processors,
+            infer_processors=infer_processors,
+        )
+
+    #def get_label_config(self):
+    #    return (["$apo", "$che"], ["apo", "che"])
+
+    def get_feature_config(self):
+        if self.include_fields == "all":
+          dir=[uri for uri in C.dpm.provider_uri.values()][0]+'/features'
+          dir_path_list = [os.path.join(dir, x) for x in os.listdir(dir)]
+          first_dir_path = dir_path_list[0]
+          file_list = [x for x in os.listdir(first_dir_path) if x.endswith('.bin')]
+          defauflt_fields = [file.split('.')[0] for file in file_list]
+        else:
+          defauflt_fields = self.include_fields
+
+        fields = []
+        names = []
+        if self.labels:
+          for label in self.labels[0]:
+            if label[1:] in defauflt_fields:
+              defauflt_fields.remove(label[1:])
+
+        for field in defauflt_fields:
+            fields += ["$" + field]
+            names += [field]
+        return fields, names
+
+
 class FundA(DataHandlerLP):
     def __init__(
         self,
