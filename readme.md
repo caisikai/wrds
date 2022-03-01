@@ -11,9 +11,9 @@ wrds
    
 | 数据集                        | dump | check | main.ipynb |
 | ---------------------------- | ---- | ---- | ----|
-| CRSP monthly stocks           | ✅    | ✅ |⬜️  |
-| Compustat fundamentals        | ✅    | ⬜️ |⬜️  |
-| Compustat price data          | ✅    | ⬜️ |⬜️  |
-| Compustat Global fundamentals | ✅    | ✅ |⬜️  |
+| CRSP monthly stocks           | ✅    | ✅ |✅  |
+| Compustat fundamentals        | ✅    | ⬜️ |✅  |
+| Compustat price data          | ✅    | ⬜️ |✅  |
+| Compustat Global fundamentals | ✅    | ✅ |✅  |
 | Compustat Global price data   | ⬜️    | ⬜️ |⬜️  |
-| Compustat Global FX rates     | ✅    | ⬜️ |⬜️  |
+| Compustat Global FX rates     | ✅    | ⬜️ |✅  |
