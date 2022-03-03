@@ -3,7 +3,7 @@
 * 2. [Quick Start in 204 Server](#QuickStartin204Server)
 	* 2.1. [Shared Enviroment](#SharedEnviroment)
 	* 2.2. [WRDS_QLIB](#WRDS_QLIB)
-	* 2.3. [Next step](#Nextstep)
+* 3. [Next step](#Nextstep)
 
 <!-- vscode-markdown-toc-config
 	numbering=true
@@ -95,7 +95,7 @@ conda activate wrds
     `main.ipynb` provides multiple dataset demo that can prepare some pd.dataframe which can be used for downstream task
     
 
-##  2.3. <a name='Nextstep'></a>Next step
+##  3. <a name='Nextstep'></a>Next step
 
 - [ ]  Current version code can not support for *Compustat Global price data,* where there are about 0.2 billion row, which consume too many memory.
 - [ ]  Fuse the price data and fundamental data
