@@ -2,7 +2,6 @@
 # Licensed under the MIT License.
 
 from pathlib import Path
-from concurrent.futures import ProcessPoolExecutor
 
 import qlib
 from qlib.data import D
@@ -27,8 +26,6 @@ class CheckBin:
         parquet_path: str,
         check_fields: str = None,
         freq: str = "day",
-        symbol_field_name: str = "symbol",
-        date_field_name: str = "date",
         max_workers: int = 16,
         check_symbol_num: int = 100,
         check_feature_num: int = 30,
@@ -52,6 +49,7 @@ class CheckBin:
         max_workers: int, optional
             max workers, by default 16
         """
+        symbol_field_name,date_field_name = self._get_field_names(qlib_dir)
         self.qlib_dir = Path(qlib_dir).expanduser()
         self.check_symbol_num = check_symbol_num
         self.date_field_name = date_field_name
@@ -99,18 +97,29 @@ class CheckBin:
         self.origin_df = self.origin_df[self.origin_df[self.symbol_field_name].isin(self.check_symbols)]
         self.origin_df.set_index([self.symbol_field_name, self.date_field_name], inplace=True)
         self.origin_df.index.names = self.qlib_df.index.names
+        
         self.origin_df = self.origin_df[self.qlib_df.columns]
         
         self.qlib_df = self.qlib_df.reindex(self.origin_df.index)
         self.qlib_df = self.qlib_df.astype(self.origin_df.dtypes.to_dict())
     
+    def _get_field_names(self,qlib_dir):
+        f = open(qlib_dir+"symbol_fileds.txt",encoding = "utf-8")
+        symbol_field_name=f.readline().strip()
+        f = open(qlib_dir+"date_field.txt",encoding = "utf-8")
+        date_field_name = f.readline().strip()
+        return symbol_field_name,date_field_name
+        
     def _get_check_symbols(self):
         def takeSecond(elem):
             return elem[1]
         check_symbols = self.origin_df[self.symbol_field_name].value_counts().reset_index()
         check_symbols = check_symbols.values.tolist()
         check_symbols.sort(key=takeSecond)
-        check_symbols = sorted(np.array(check_symbols)[-self.check_symbol_num:,0].tolist())
+        if(self.check_symbol_num==-1):
+            check_symbols = sorted(np.array(check_symbols)[:,0].tolist())
+        else:
+            check_symbols = sorted(np.array(check_symbols)[-self.check_symbol_num:,0].tolist())
         return check_symbols
     def _get_mapper_dict(self, uri: str):
 
