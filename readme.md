@@ -74,18 +74,16 @@ conda activate wrds
     cd wrds
     python scripts/dump_single/dump_single.py dump_all --csv_path /storage/wrds/crsp/sasdata/a_stock/msf.parquet /storage/qlib/qlib_data/crsp/a_stock/msf_test --symbol_field_name permno --date_field_name date
     ```
-    
-    ```bash
-    #go into repository
-    cd wrds
-    #dump crsp monthly price msf
-    python scripts/dump_single/dump_single.py dump_all --csv_path /storage/wrds/crsp/sasdata/a_stock/msf.parquet --qlib_dir ./test --symbol_field_name permno --date_field_name date
-    ```
-    
+
     See more samples in [here](https://github.com/caisikai/wrds/blob/main/scripts/dump_single/readme.md)
     
 3. Check Dump
-   
+   ```bash
+    #go into repository
+    cd wrds
+    python check_dump_single.py check_single --qlib_dir /storage/qlib/qlib_data/wrds/comp/d_global/currency/g_exrt_mth/ --check_symbol_num -1 --parquet_path /storage/wrds/comp/sasdata/d_global/currency/g_exrt_mth.parquet
+    ```
+
     see more samples in [here](https://github.com/caisikai/wrds/blob/main/scripts/dump_single/readme.md)
     
 4. dataset demo
