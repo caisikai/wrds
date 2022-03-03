@@ -12,6 +12,7 @@
 	* 2.3. [Compustat price data](#Compustatpricedata-1)
 	* 2.4. [Compustat Global fundamentals](#CompustatGlobalfundamentals-1)
 	* 2.5. [Compustat Global price data](#CompustatGlobalpricedata-1)
+	* 2.6. [ 2.6 Compustat Global FX rates](#2.6CompustatGlobalFXrates)
 
 <!-- vscode-markdown-toc-config
 	numbering=true
@@ -55,15 +56,35 @@ python dump_single.py dump_all --csv_path /storage/wrds/comp/sasdata/d_global/cu
 ##  2. <a name='Checkdump'></a>Check dump
 
 ###  2.1. <a name='DumpbinCRSPmonthlystocks-1'></a>Dump bin CRSP monthly stocks    
-
+```bash
+python check_dump_single.py check_single --qlib_dir /storage/qlib/qlib_data/wrds/crsp/a_stock/msf/ --check_symbol_num -1 --parquet_path /storage/wrds/crsp/sasdata/a_stock/msf.parquet
+```
 
 ###  2.2. <a name='Compustatfundamentals-1'></a>Compustat fundamentals 
-
+```bash
+python check_dump_single.py check_single --qlib_dir /storage/qlib/qlib_data/wrds/comp/naa/funda/ --check_symbol_num -1 --parquet_path /storage/wrds/comp/sasdata/naa/funda.parquet/
+```
 
 ###  2.3. <a name='Compustatpricedata-1'></a>Compustat price data
-
+```bash
+python check_dump_single.py check_single --qlib_dir /storage/qlib/qlib_data/wrds/comp/naa/secm/ --check_symbol_num -1 --parquet_path /storage/wrds/comp/sasdata/naa/secm.parquet/
+```
 
 ###  2.4. <a name='CompustatGlobalfundamentals-1'></a>Compustat Global fundamentals
-
+```bash
+python check_dump_single.py check_single --qlib_dir /storage/qlib/qlib_data/wrds/comp/d_global/g_funda/ --check_symbol_num -1 --parquet_path /storage/wrds/comp/sasdata/d_global/g_funda.parquet/
+```
 
 ###  2.5. <a name='CompustatGlobalpricedata-1'></a>Compustat Global price data 
+```bash
+TODO
+```
+###  2.6. <a name='2.6CompustatGlobalFXrates'></a> 2.6 Compustat Global FX rates
+```bash
+python check_dump_single.py check_single --qlib_dir /storage/qlib/qlib_data/wrds/comp/d_global/currency/g_exrt_mth/ --check_symbol_num -1 --parquet_path /storage/wrds/comp/sasdata/d_global/currency/g_exrt_mth.parquet
+```
+
+
+
+
+
