@@ -95,7 +95,7 @@ conda activate wrds
     `main.ipynb` provides multiple dataset demo that can prepare some pd.dataframe which can be used for downstream task
     
 
-###  2.3. <a name='Nextstep'></a>Next step
+##  2.3. <a name='Nextstep'></a>Next step
 
 - [ ]  Current version code can not support for *Compustat Global price data,* where there are about 0.2 billion row, which consume too many memory.
 - [ ]  Fuse the price data and fundamental data
