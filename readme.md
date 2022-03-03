@@ -72,7 +72,7 @@ conda activate wrds
     ```bash
     #go into repository
     cd wrds
-    python scripts/dump_single/dump_single.py dump_all --csv_path /storage/wrds/crsp/sasdata/a_stock/msf.parquet /storage/qlib/qlib_data/crsp/a_stock/msf_test --symbol_field_name permno --date_field_name date
+    python scripts/dump_single/dump_single.py dump_all --csv_path /storage/wrds/crsp/sasdata/a_stock/msf.parquet --qlib_dir /storage/qlib/qlib_data/crsp/a_stock/msf_test --symbol_field_name permno --date_field_name date
     ```
 
     See more samples in [here](https://github.com/caisikai/wrds/blob/main/scripts/dump_single/readme.md)
