@@ -14,15 +14,15 @@
 # QLIB_WRDS
 ##  1. <a name='Schedule'></a>Schedule
 1. TODO List
- - [x]  改好scripts/dump_single/check_dump_single.py
- - [x]  在data/wrds_handler.py写好handler类
- - [x]  dump文档
- - [x]  check文档
- - [x]  服务器数据放在/storage/qlib/qlib_data/wrds/
- - [x]  写好main.ipynb,展示每个数据集的dataset.prepare结果，数据太大情况下加载太久的话，可以选取观测period最长的100只instruments作为market（存一个test100.txt到每个数据集的instruments, test100.txt已经有了）
-2. 数据集
+ - [x]  write scripts/dump_single/check_dump_single.py, which is used to check the result of dump_single.py
+ - [x]  write data/wrds_handler.py, which can handler one dataset
+ - [x]  dump document
+ - [x]  dump check document
+ - [x]  place .bin file on /storage/qlib/qlib_data/wrds/
+ - [x]  write main.ipynb, show results of each dataset's result of dataset.prepare，if it is too long to load data, select the longest observed period instreumetns as a market,（save test100.txt in instruments subdir of each dataset）
+2. Dataset
    
-| 数据集                        | dump | check | main.ipynb |
+| dataset                        | dump | check | main.ipynb |
 | ---------------------------- | ---- | ---- | ----|
 | CRSP monthly stocks           | ✅    | ✅ |✅  |
 | Compustat fundamentals        | ✅    | ✅ |✅  |
